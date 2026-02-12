@@ -20,7 +20,7 @@
 
         /* Multi-Item Grid */
         .section-title { text-align: center; margin-top: 50px; letter-spacing: 2px; text-transform: uppercase; font-size: 1.5rem; }
-        .products { padding: 40px 5%; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+        .products { padding: 40px 5%; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; min-height: 200px; }
         .product-card { text-align: center; border: 1px solid #f2f2f2; padding: 15px; transition: 0.3s; position: relative; }
         .product-card:hover { border-color: var(--accent); }
         .product-image { width: 100%; aspect-ratio: 3/4; background: #f9f9f9; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 0.8rem; background-size: cover; background-position: center; }
@@ -28,6 +28,11 @@
         .btn { background: var(--dark); color: var(--light); padding: 12px 30px; border: none; cursor: pointer; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; width: 100%; transition: 0.3s; }
         .order-btn { background: var(--accent); margin-top: 10px; }
         .btn:hover { opacity: 0.8; }
+
+        /* Loading Spinner */
+        #loader { text-align: center; padding: 50px; color: var(--accent); font-style: italic; letter-spacing: 1px; }
+        .spinner { border: 2px solid #f3f3f3; border-top: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Admin Dashboard */
         #admin-dashboard { display: none; padding: 50px 5%; background: #fff; border-top: 5px solid var(--accent); }
@@ -39,7 +44,7 @@
         /* Auth Modal */
         #auth-modal input:focus { outline: none; border-color: var(--accent); }
         .admin-controls { background: var(--gray); padding: 25px; margin: 20px 0; border: 1px solid #eee; }
-        .admin-controls input { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
+        .admin-controls input { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; width: calc(100% - 22px); }
 
         footer { text-align: center; padding: 40px; border-top: 1px solid #eee; font-size: 0.7rem; }
     </style>
@@ -72,6 +77,12 @@
     </section>
 
     <h2 class="section-title">New Arrivals</h2>
+    
+    <div id="loader">
+        <div class="spinner"></div>
+        Curating collection...
+    </div>
+
     <section id="shop" class="products">
         </section>
 
@@ -98,7 +109,7 @@
         
         <h2 style="letter-spacing: 2px; text-align: center;">INVENTORY MANAGER</h2>
         <div class="admin-controls">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
                 <input type="text" id="new-item-name" placeholder="Item Name">
                 <input type="number" id="new-item-price" placeholder="Price (Ksh)">
                 <input type="text" id="new-item-image" placeholder="Image URL">
@@ -150,7 +161,7 @@
                 try { 
                     await createUserWithEmailAndPassword(auth, email, pass); 
                     closeAuth();
-                } catch (err) { document.getElementById('auth-error').innerText = err.message; }
+                } catch (err) { document.getElementById('auth-error').innerText = "Account error: " + err.message; }
             }
         };
 
@@ -186,20 +197,27 @@
         };
 
         window.deleteItem = async (id) => {
-            if(confirm("Delete this product?")) await deleteDoc(doc(db, "products", id));
+            if(confirm("Permanently delete this product?")) await deleteDoc(doc(db, "products", id));
         };
 
         // Real-time Product Sync
         onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
             const shop = document.getElementById('shop');
             const adminInv = document.getElementById('admin-inventory-list');
+            const loader = document.getElementById('loader');
+            
             shop.innerHTML = ""; adminInv.innerHTML = "";
+            loader.style.display = "none";
+
+            if (snap.empty) {
+                shop.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No products available yet.</p>";
+            }
 
             snap.forEach(d => {
                 const item = d.data();
                 const cardHtml = `
                     <div class="product-card">
-                        <div class="product-image" style="background-image:url('${item.image}')">${item.image ? '' : 'No Image'}</div>
+                        <div class="product-image" style="background-image:url('${item.image}')">${item.image ? '' : 'New Arrival'}</div>
                         <h3>${item.name}</h3>
                         <p>Ksh ${item.price.toLocaleString()}</p>
                         <button class="btn order-btn" onclick="placeOrder('${item.name}', ${item.price})">Order via WhatsApp</button>
@@ -207,8 +225,8 @@
                 shop.innerHTML += cardHtml;
 
                 adminInv.innerHTML += `
-                    <div class="product-card" style="border:1px dashed #ccc;">
-                        <h4>${item.name}</h4>
+                    <div class="product-card" style="border:1px dashed #ccc; padding:10px;">
+                        <h4 style="margin:5px 0;">${item.name}</h4>
                         <button class="btn" style="background:#cc0000; padding:5px; font-size:0.6rem;" onclick="deleteItem('${d.id}')">Delete Item</button>
                     </div>`;
             });
@@ -217,18 +235,18 @@
         // --- ORDER LOGIC ---
         window.placeOrder = async (item, price) => {
             if (!auth.currentUser) { handleAuth(); return; }
-            const loc = prompt("Delivery address:");
+            const loc = prompt("Where should we deliver this?");
             if (loc) {
                 await addDoc(collection(db, "orders"), {
                     customer: auth.currentUser.email,
                     item, price: Number(price), location: loc, date: new Date().toLocaleString(), timestamp: Date.now()
                 });
-                const text = `Hi! I'm ${auth.currentUser.email}. I'd like the ${item}.\nDelivery: ${loc}`;
+                const text = `Hi! I'm ${auth.currentUser.email}. I'd like to order the ${item}.\nDelivery Location: ${loc}`;
                 window.open(`https://wa.me/254740873744?text=${encodeURIComponent(text)}`, '_blank');
             }
         };
 
-        async function loadSales() {
+        function loadSales() {
             onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), (snap) => {
                 const tableBody = document.getElementById('sales-data');
                 tableBody.innerHTML = "";
@@ -244,160 +262,6 @@
                 document.getElementById('total-count').innerText = count;
                 document.getElementById('total-revenue').innerText = "Ksh " + revenue.toLocaleString();
             });
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEE BOUTIQUE | Premium Fashion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { -webkit-tap-highlight-color: transparent; }
-        .modal { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
-            z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);
-        }
-        .modal.active { display: flex; }
-    </style>
-</head>
-<body class="bg-slate-50 font-sans text-gray-900">
-
-    <nav class="bg-white shadow-sm p-4 sticky top-0 z-50 border-b border-pink-100">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-black tracking-tighter text-pink-600">DEE BOUTIQUE</h1>
-            <div id="nav-links" class="flex gap-2"></div>
-        </div>
-    </nav>
-
-    <div id="admin-panel" class="hidden container mx-auto p-4 bg-white border-2 border-pink-200 rounded-2xl my-4 shadow-xl">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-black text-pink-600">OWNER DASHBOARD</h2>
-            <div class="bg-pink-600 text-white p-3 rounded-xl">
-                <p id="total-sales" class="text-lg font-bold">Ksh 0</p>
-            </div>
-        </div>
-        <form id="upload-form" class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
-            <input type="text" id="prod-name" placeholder="Name" class="p-3 border rounded-xl outline-none" required>
-            <input type="number" id="prod-price" placeholder="Price" class="p-3 border rounded-xl outline-none" required>
-            <input type="number" id="prod-stock" placeholder="Stock" class="p-3 border rounded-xl outline-none" required>
-            <input type="text" id="prod-image" placeholder="Image URL" class="p-3 border rounded-xl outline-none" required>
-            <button type="submit" class="bg-pink-600 text-white font-black py-3 rounded-xl">POST</button>
-        </form>
-    </div>
-
-    <main class="container mx-auto p-4 md:p-6">
-        <h2 class="text-3xl font-black text-gray-900 italic mb-2 uppercase">New Arrivals</h2>
-        <div class="h-1.5 w-16 bg-pink-600 mb-6"></div>
-
-        <div class="relative w-full max-w-lg mb-8">
-            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input type="text" id="search-input" oninput="loadProducts(this.value)" placeholder="Search styles..." 
-                class="w-full pl-11 pr-4 py-4 bg-white border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-pink-500 transition shadow-sm">
-        </div>
-
-        <div id="product-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-    </main>
-
-    <div id="auth-modal" class="modal">
-        <div class="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl">
-            <h3 class="text-2xl font-black mb-6 text-pink-600">Sign In</h3>
-            <form id="auth-form" class="space-y-4">
-                <input type="email" id="auth-email" placeholder="Email Address" class="w-full p-4 border rounded-2xl" required>
-                <button type="submit" class="w-full bg-pink-600 text-white py-4 rounded-2xl font-black shadow-lg">CONTINUE</button>
-                <button type="button" onclick="closeAuth()" class="w-full text-gray-400 font-bold py-2">Cancel</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        const WHATSAPP_NUMBER = "254740873744";
-        const ADMIN_EMAIL = "daisyr.rsc@gmail.com";
-
-        window.onload = () => { renderAuth(); loadProducts(); updateDashboard(); };
-
-        function renderAuth() {
-            const user = localStorage.getItem('currentUser');
-            document.getElementById('nav-links').innerHTML = user ? 
-                `<button onclick="logout()" class="text-xs bg-red-50 text-red-500 px-4 py-2 rounded-xl font-bold">Logout</button>` :
-                `<button onclick="openAuth()" class="bg-pink-600 text-white px-6 py-2 rounded-full text-sm font-bold">Sign In</button>`;
-            if(user === ADMIN_EMAIL) document.getElementById('admin-panel').classList.remove('hidden');
-        }
-
-        function loadProducts(filter = "") {
-            const grid = document.getElementById('product-display-grid');
-            const products = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            const isAdmin = localStorage.getItem('currentUser') === ADMIN_EMAIL;
-            
-            const filtered = products.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
-
-            grid.innerHTML = filtered.map(p => {
-                const out = p.stock <= 0;
-                return `
-                <div class="bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm relative">
-                    ${isAdmin ? `<button onclick="deleteProduct(${p.id})" class="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full z-10"><i class="fas fa-trash text-xs"></i></button>` : ''}
-                    <img src="${p.image}" class="h-64 w-full object-cover ${out ? 'grayscale opacity-50' : ''}">
-                    <div class="p-5">
-                        <h3 class="font-bold text-gray-800">${p.name}</h3>
-                        <p class="text-xl font-black text-pink-600">Ksh ${p.price.toLocaleString()}</p>
-                        <button onclick="${out ? '' : `handleOrder(${p.id}, '${p.name}', ${p.price})`}" 
-                            class="w-full mt-4 py-3 rounded-2xl font-bold transition ${out ? 'bg-gray-200 text-gray-400' : 'bg-black text-white hover:bg-pink-600'}">
-                            ${out ? 'SOLD OUT' : 'BUY NOW'}
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function handleOrder(id, name, price) {
-            const email = localStorage.getItem('currentUser');
-            if (!email) return openAuth();
-
-            // Instant deduction (No Refresh)
-            let products = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            products = products.map(p => p.id === id ? {...p, stock: p.stock - 1} : p);
-            localStorage.setItem('dee_products', JSON.stringify(products));
-            
-            // Log Sale
-            const orders = JSON.parse(localStorage.getItem('allOrders') || '[]');
-            orders.unshift({ email, item: name, price, status: 'Pending', id: Date.now() });
-            localStorage.setItem('allOrders', JSON.stringify(orders));
-
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Order:%20${name}`, '_blank');
-            loadProducts(); // Update UI immediately instead of reloading page
-        }
-
-        function updateDashboard() {
-            const orders = JSON.parse(localStorage.getItem('allOrders') || '[]');
-            const rev = orders.reduce((sum, o) => sum + o.price, 0);
-            document.getElementById('total-sales').innerText = `Ksh ${rev.toLocaleString()}`;
-        }
-
-        function openAuth() { document.getElementById('auth-modal').classList.add('active'); }
-        function closeAuth() { document.getElementById('auth-modal').classList.remove('active'); }
-        function logout() { localStorage.removeItem('currentUser'); location.reload(); }
-
-        document.getElementById('auth-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            localStorage.setItem('currentUser', document.getElementById('auth-email').value.toLowerCase());
-            location.reload();
-        });
-
-        document.getElementById('upload-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const p = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            p.unshift({ id: Date.now(), name: document.getElementById('prod-name').value, price: parseInt(document.getElementById('prod-price').value), stock: parseInt(document.getElementById('prod-stock').value), image: document.getElementById('prod-image').value });
-            localStorage.setItem('dee_products', JSON.stringify(p));
-            e.target.reset(); loadProducts();
-        });
-
-        function deleteProduct(id) {
-            let p = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            localStorage.setItem('dee_products', JSON.stringify(p.filter(i => i.id !== id)));
-            loadProducts();
         }
     </script>
 </body>
