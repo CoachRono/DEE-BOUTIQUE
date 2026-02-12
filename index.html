@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEE BOUTIQUE | Premium Fashion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .product-card:hover img { transform: scale(1.05); }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-gray-900">
+
+    <nav class="glass-nav shadow-sm p-4 sticky top-0 z-50 border-b border-pink-100">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-black tracking-tighter text-pink-600">DEE BOUTIQUE</h1>
+            <div id="nav-links" class="flex gap-4 items-center font-bold text-gray-600">
+                </div>
+        </div>
+    </nav>
+
+    <div id="admin-panel" class="hidden container mx-auto p-6 bg-white border-2 border-pink-200 rounded-2xl my-6 shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h2 class="text-2xl font-black text-pink-600 uppercase">Owner Dashboard</h2>
+                <p class="text-gray-500">Manage your collection and track sales.</p>
+            </div>
+            <div class="flex gap-4 w-full md:w-auto">
+                <div class="bg-pink-600 text-white p-4 rounded-xl shadow-md flex-1 text-center">
+                    <p class="text-xs uppercase opacity-80">Total Sales</p>
+                    <p id="total-sales" class="text-xl font-bold">Ksh 0</p>
+                </div>
+                <div class="bg-slate-800 text-white p-4 rounded-xl shadow-md flex-1 text-center">
+                    <p class="text-xs uppercase opacity-80">Total Orders</p>
+                    <p id="total-orders" class="text-xl font-bold">0</p>
+                </div>
+            </div>
+        </div>
+
+        <section class="mb-10 bg-pink-50 p-6 rounded-xl border-2 border-dashed border-pink-300">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-pink-700">
+                <i class="fas fa-plus-circle"></i> Upload New Arrival
+            </h3>
+            <form id="upload-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" id="prod-name" placeholder="Item Name" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-pink-500" required>
+                <input type="number" id="prod-price" placeholder="Price (Ksh)" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-pink-500" required>
+                <input type="text" id="prod-image" placeholder="Image URL" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-pink-500" required>
+                <button type="submit" class="bg-pink-600 text-white font-bold py-3 rounded-lg hover:bg-pink-700 transition">
+                    Post to Store
+                </button>
+            </form>
+        </section>
+
+        <h3 class="text-lg font-bold mb-3">WhatsApp Order Log</h3>
+        <div class="overflow-x-auto bg-white rounded-lg border">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                        <th class="p-4">Time</th>
+                        <th class="p-4">Customer Email</th>
+                        <th class="p-4">Item</th>
+                        <th class="p-4 text-right">Price</th>
+                    </tr>
+                </thead>
+                <tbody id="sales-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <main class="container mx-auto p-6">
+        <div class="mb-10 flex flex-col md:flex-row justify-between items-end">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 italic">NEW ARRIVALS</h2>
+                <div class="h-1 w-20 bg-pink-600 mt-2"></div>
+            </div>
+            <p id="welcome-msg" class="text-gray-500 font-medium"></p>
+        </div>
+        
+        <div id="product-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const WHATSAPP_NUMBER = "254740873744";
+        const ADMIN_EMAIL = "daisyr.rsc@gmail.com";
+
+        // --- APP INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAuth();
+            listenToProducts();
+            if(localStorage.getItem('currentUser') === ADMIN_EMAIL) {
+                showAdminDashboard();
+            }
+        });
+
+        // --- STOREFRONT LOGIC ---
+        function listenToProducts() {
+            const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const grid = document.getElementById('product-display-grid');
+                const currentUser = localStorage.getItem('currentUser');
+                
+                grid.innerHTML = snapshot.docs.map(docSnap => {
+                    const p = docSnap.data();
+                    const id = docSnap.id;
+                    return `
+                        <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 relative group product-card">
+                            ${currentUser === ADMIN_EMAIL ? `
+                                <button onclick="window.deleteProduct('${id}')" class="absolute top-4 right-4 bg-red-500 text-white w-10 h-10 rounded-full z-10 flex items-center justify-center shadow-lg hover:scale-110">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            ` : ''}
+                            <img src="${p.image}" class="h-80 w-full object-cover transition duration-500">
+                            <div class="p-6 text-center">
+                                <h3 class="text-xl font-bold text-gray-900">${p.name}</h3>
+                                <p class="text-2xl font-black text-pink-600 mt-1">Ksh ${p.price.toLocaleString()}</p>
+                                <button onclick="window.handleOrder('${p.name}', ${p.price})" 
+                                    class="w-full mt-6 bg-green-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-green-600 transition shadow-lg shadow-green-100">
+                                    <i class="fab fa-whatsapp text-xl"></i> ORDER VIA WHATSAPP
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        // --- ADMIN FUNCTIONS ---
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newProd = {
+                name: document.getElementById('prod-name').value,
+                price: parseInt(document.getElementById('prod-price').value),
+                image: document.getElementById('prod-image').value,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "products"), newProd);
+                document.getElementById('upload-form').reset();
+                alert("Posted to DEE BOUTIQUE! ✨");
+            } catch (err) { alert("Permission Denied: Please log in as Admin."); }
+        });
+
+        window.deleteProduct = async (id) => {
+            if(confirm("Permanently delete this item?")) {
+                try {
+                    await deleteDoc(doc(db, "products", id));
+                } catch (err) { alert("Error deleting product."); }
+            }
+        };
+
+        function showAdminDashboard() {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            const qSales = query(collection(db, "sales"), orderBy("timestamp", "desc"));
+            
+            onSnapshot(qSales, (snapshot) => {
+                const list = document.getElementById('sales-list');
+                let revenue = 0;
+                list.innerHTML = snapshot.docs.map(docSnap => {
+                    const o = docSnap.data();
+                    revenue += o.price;
+                    const date = o.timestamp ? o.timestamp.toDate().toLocaleTimeString() : '...';
+                    return `
+                        <tr class="border-b hover:bg-gray-50 transition">
+                            <td class="p-4 text-gray-400">${date}</td>
+                            <td class="p-4">${o.email}</td>
+                            <td class="p-4 font-medium">${o.item}</td>
+                            <td class="p-4 text-right font-bold text-pink-600">Ksh ${o.price.toLocaleString()}</td>
+                        </tr>`;
+                }).join('');
+                document.getElementById('total-orders').innerText = snapshot.size;
+                document.getElementById('total-sales').innerText = `Ksh ${revenue.toLocaleString()}`;
+            });
+        }
+
+        // --- CUSTOMER FUNCTIONS ---
+        window.handleOrder = async (itemName, price) => {
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
+                alert("Please click 'SIGN IN' at the top to place your order.");
+                return;
+            }
+
+            // Log sales data to Firebase
+            await addDoc(collection(db, "sales"), {
+                email: user,
+                item: itemName,
+                price: price,
+                timestamp: serverTimestamp()
+            });
+
+            const msg = `Hi DEE BOUTIQUE! I am ${user}. I would like to order: ${itemName} (Ksh ${price})`;
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        // --- AUTH SYSTEM ---
+        window.login = () => {
+            const email = prompt("Enter your email to browse and order:");
+            if (email && email.includes("@")) {
+                localStorage.setItem('currentUser', email.toLowerCase());
+                location.reload();
+            }
+        };
+
+        window.logout = () => {
+            localStorage.removeItem('currentUser');
+            location.reload();
+        };
+
+        function renderAuth() {
+            const nav = document.getElementById('nav-links');
+            const welcome = document.getElementById('welcome-msg');
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                welcome.innerText = `Logged in as: ${user}`;
+                nav.innerHTML = `<button onclick="window.logout()" class="text-red-500 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition">Logout</button>`;
+            } else {
+                nav.innerHTML = `<button onclick="window.login()" class="bg-pink-600 text-white px-8 py-3 rounded-full shadow-lg hover:bg-pink-700 transition">Sign In</button>`;
+            }
+        }
+    </script>
+</body>
+</html>
