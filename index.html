@@ -7,252 +7,149 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-        .product-card { transition: transform 0.2s ease; }
+        body { -webkit-tap-highlight-color: transparent; }
         .modal { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.7); 
-            z-index: 100; 
-            align-items: center; 
-            justify-content: center; 
-            backdrop-filter: blur(4px);
-            padding: 20px;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
+            z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);
         }
         .modal.active { display: flex; }
-        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #db2777; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-gray-900">
 
     <nav class="bg-white shadow-sm p-4 sticky top-0 z-50 border-b border-pink-100">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-pink-600">DEE BOUTIQUE</h1>
-            <div id="nav-links" class="flex gap-2 items-center font-bold">
-                </div>
+            <h1 class="text-2xl font-black tracking-tighter text-pink-600">DEE BOUTIQUE</h1>
+            <div id="nav-links" class="flex gap-2"></div>
         </div>
     </nav>
 
-    <div id="admin-panel" class="hidden container mx-auto p-4 md:p-6 bg-white border-2 border-pink-200 rounded-2xl my-4 shadow-xl">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <h2 class="text-xl font-black text-pink-600 uppercase">Owner Dashboard</h2>
-                <p class="text-[10px] text-gray-500 font-black">Logged in as Daisy</p>
-            </div>
-            <div class="bg-pink-600 text-white p-4 rounded-xl text-center w-full md:w-auto min-w-[150px]">
-                <p class="text-[10px] uppercase opacity-80 font-bold">Total Revenue</p>
-                <p id="total-sales" class="text-xl font-bold">Ksh 0</p>
+    <div id="admin-panel" class="hidden container mx-auto p-4 bg-white border-2 border-pink-200 rounded-2xl my-4 shadow-xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-black text-pink-600">OWNER DASHBOARD</h2>
+            <div class="bg-pink-600 text-white p-3 rounded-xl">
+                <p id="total-sales" class="text-lg font-bold">Ksh 0</p>
             </div>
         </div>
-
-        <section class="mb-8 bg-pink-50 p-4 rounded-xl border-2 border-dashed border-pink-300">
-            <h3 class="text-lg font-bold mb-4 text-pink-700">Add New Arrival</h3>
-            <form id="upload-form" class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <input type="text" id="prod-name" placeholder="Item Name" class="p-3 border rounded-xl outline-none text-sm" required>
-                <input type="number" id="prod-price" placeholder="Price" class="p-3 border rounded-xl outline-none text-sm" required>
-                <input type="number" id="prod-stock" placeholder="Stock Qty" class="p-3 border rounded-xl outline-none text-sm" required>
-                <input type="text" id="prod-image" placeholder="Image URL" class="p-3 border rounded-xl outline-none text-sm" required>
-                <button type="submit" class="bg-pink-600 text-white font-black py-3 rounded-xl active:scale-95 transition">UPLOAD</button>
-            </form>
-        </section>
-
-        <div class="overflow-x-auto bg-white rounded-xl border custom-scrollbar">
-            <table class="w-full text-sm text-left min-w-[500px]">
-                <thead class="bg-gray-100">
-                    <tr><th class="p-4">Customer</th><th class="p-4">Item</th><th class="p-4">Status</th><th class="p-4 text-right">Price</th></tr>
-                </thead>
-                <tbody id="sales-list"></tbody>
-            </table>
-        </div>
+        <form id="upload-form" class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+            <input type="text" id="prod-name" placeholder="Name" class="p-3 border rounded-xl outline-none" required>
+            <input type="number" id="prod-price" placeholder="Price" class="p-3 border rounded-xl outline-none" required>
+            <input type="number" id="prod-stock" placeholder="Stock" class="p-3 border rounded-xl outline-none" required>
+            <input type="text" id="prod-image" placeholder="Image URL" class="p-3 border rounded-xl outline-none" required>
+            <button type="submit" class="bg-pink-600 text-white font-black py-3 rounded-xl">POST</button>
+        </form>
     </div>
 
     <main class="container mx-auto p-4 md:p-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 italic">NEW ARRIVALS</h2>
-                <div class="h-1.5 w-16 bg-pink-600 mt-2"></div>
-            </div>
-            <div class="relative w-full md:w-72">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-input" oninput="filterProducts()" placeholder="Search styles..." 
-                    class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-pink-500 transition">
-            </div>
+        <h2 class="text-3xl font-black text-gray-900 italic mb-2 uppercase">New Arrivals</h2>
+        <div class="h-1.5 w-16 bg-pink-600 mb-6"></div>
+
+        <div class="relative w-full max-w-lg mb-8">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="search-input" oninput="loadProducts(this.value)" placeholder="Search styles..." 
+                class="w-full pl-11 pr-4 py-4 bg-white border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-pink-500 transition shadow-sm">
         </div>
 
-        <div id="product-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            </div>
+        <div id="product-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </main>
 
     <div id="auth-modal" class="modal">
-        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl">
-            <h3 id="auth-title" class="text-2xl font-black mb-4 text-pink-600">Sign In</h3>
+        <div class="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl">
+            <h3 class="text-2xl font-black mb-6 text-pink-600">Sign In</h3>
             <form id="auth-form" class="space-y-4">
-                <div id="signup-fields" class="hidden space-y-4">
-                    <input type="text" id="auth-name" placeholder="Full Name" class="w-full p-4 border rounded-2xl">
-                    <input type="tel" id="auth-phone" placeholder="Phone Number" class="w-full p-4 border rounded-2xl">
-                    <input type="text" id="auth-loc" placeholder="Delivery Location" class="w-full p-4 border rounded-2xl">
-                </div>
                 <input type="email" id="auth-email" placeholder="Email Address" class="w-full p-4 border rounded-2xl" required>
-                <button type="submit" class="w-full bg-pink-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">CONTINUE</button>
-                <button type="button" onclick="toggleAuthMode()" id="auth-switch" class="w-full text-pink-500 text-sm font-bold py-2">Need an account? Sign Up</button>
+                <button type="submit" class="w-full bg-pink-600 text-white py-4 rounded-2xl font-black shadow-lg">CONTINUE</button>
                 <button type="button" onclick="closeAuth()" class="w-full text-gray-400 font-bold py-2">Cancel</button>
             </form>
-        </div>
-    </div>
-
-    <div id="edit-modal" class="modal">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full">
-            <h3 class="text-xl font-black mb-4">Update Item</h3>
-            <input type="number" id="edit-price" placeholder="Price" class="w-full p-4 border rounded-2xl mb-4">
-            <input type="number" id="edit-stock" placeholder="Stock" class="w-full p-4 border rounded-2xl mb-4">
-            <div class="flex gap-3">
-                <button onclick="closeEdit()" class="flex-1 text-gray-400 font-bold">Cancel</button>
-                <button onclick="saveEdit()" class="flex-1 bg-black text-white py-3 rounded-2xl font-bold">SAVE</button>
-            </div>
         </div>
     </div>
 
     <script>
         const WHATSAPP_NUMBER = "254740873744";
         const ADMIN_EMAIL = "daisyr.rsc@gmail.com";
-        let isSignUp = false;
-        let editingId = null;
 
-        window.onload = () => {
-            renderAuth();
-            loadProducts();
-            if(localStorage.getItem('currentUser') === ADMIN_EMAIL) showAdminDashboard();
-        };
-
-        function toggleAuthMode() {
-            isSignUp = !isSignUp;
-            document.getElementById('auth-title').innerText = isSignUp ? "Sign Up" : "Sign In";
-            document.getElementById('signup-fields').classList.toggle('hidden');
-            document.getElementById('auth-switch').innerText = isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up";
-        }
-
-        function openAuth() { document.getElementById('auth-modal').classList.add('active'); }
-        function closeAuth() { document.getElementById('auth-modal').classList.remove('active'); }
-
-        document.getElementById('auth-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value.toLowerCase();
-            
-            if (isSignUp) {
-                const user = { name: document.getElementById('auth-name').value, email, phone: document.getElementById('auth-phone').value, location: document.getElementById('auth-loc').value };
-                let users = JSON.parse(localStorage.getItem('all_users') || '[]');
-                users.push(user);
-                localStorage.setItem('all_users', JSON.stringify(users));
-            }
-            
-            localStorage.setItem('currentUser', email);
-            location.reload();
-        });
+        window.onload = () => { renderAuth(); loadProducts(); updateDashboard(); };
 
         function renderAuth() {
-            const nav = document.getElementById('nav-links');
             const user = localStorage.getItem('currentUser');
-            if (user) {
-                nav.innerHTML = `<span class="hidden md:inline text-xs text-pink-600">${user}</span>
-                <button onclick="localStorage.removeItem('currentUser'); location.reload();" class="text-xs bg-red-50 text-red-500 px-3 py-2 rounded-lg font-bold">Logout</button>`;
-            } else {
-                nav.innerHTML = `<button onclick="openAuth()" class="bg-pink-600 text-white px-5 py-2 rounded-full text-sm shadow-md">Sign In</button>`;
-            }
+            document.getElementById('nav-links').innerHTML = user ? 
+                `<button onclick="logout()" class="text-xs bg-red-50 text-red-500 px-4 py-2 rounded-xl font-bold">Logout</button>` :
+                `<button onclick="openAuth()" class="bg-pink-600 text-white px-6 py-2 rounded-full text-sm font-bold">Sign In</button>`;
+            if(user === ADMIN_EMAIL) document.getElementById('admin-panel').classList.remove('hidden');
         }
 
         function loadProducts(filter = "") {
             const grid = document.getElementById('product-display-grid');
             const products = JSON.parse(localStorage.getItem('dee_products') || '[]');
             const isAdmin = localStorage.getItem('currentUser') === ADMIN_EMAIL;
-
+            
             const filtered = products.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
 
             grid.innerHTML = filtered.map(p => {
                 const out = p.stock <= 0;
                 return `
-                <div class="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100 relative product-card">
-                    ${isAdmin ? `
-                        <div class="absolute top-4 right-4 flex gap-2 z-10">
-                            <button onclick="openEdit(${p.id})" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center shadow-xl"><i class="fas fa-pencil-alt text-xs"></i></button>
-                            <button onclick="deleteProduct(${p.id})" class="bg-red-500 text-white w-9 h-9 rounded-full flex items-center justify-center shadow-xl"><i class="fas fa-trash text-xs"></i></button>
-                        </div>
-                    ` : ''}
-                    <img src="${p.image}" class="h-72 w-full object-cover ${out ? 'grayscale opacity-40' : ''}">
+                <div class="bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm relative">
+                    ${isAdmin ? `<button onclick="deleteProduct(${p.id})" class="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full z-10"><i class="fas fa-trash text-xs"></i></button>` : ''}
+                    <img src="${p.image}" class="h-64 w-full object-cover ${out ? 'grayscale opacity-50' : ''}">
                     <div class="p-5">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-bold text-gray-800">${p.name}</h3>
-                            <span class="text-[10px] font-black uppercase ${p.stock < 3 ? 'text-red-500' : 'text-gray-400'}">${out ? 'Sold Out' : p.stock + ' left'}</span>
-                        </div>
+                        <h3 class="font-bold text-gray-800">${p.name}</h3>
                         <p class="text-xl font-black text-pink-600">Ksh ${p.price.toLocaleString()}</p>
                         <button onclick="${out ? '' : `handleOrder(${p.id}, '${p.name}', ${p.price})`}" 
-                            class="w-full mt-4 py-3.5 rounded-2xl font-black transition-all ${out ? 'bg-gray-100 text-gray-400' : 'bg-black text-white active:bg-pink-600 shadow-lg'}">
-                            ${out ? 'OUT OF STOCK' : 'BUY NOW'}
+                            class="w-full mt-4 py-3 rounded-2xl font-bold transition ${out ? 'bg-gray-200 text-gray-400' : 'bg-black text-white hover:bg-pink-600'}">
+                            ${out ? 'SOLD OUT' : 'BUY NOW'}
                         </button>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        function filterProducts() {
-            const val = document.getElementById('search-input').value;
-            loadProducts(val);
-        }
-
         function handleOrder(id, name, price) {
-            const userEmail = localStorage.getItem('currentUser');
-            if (!userEmail) { alert("Please Sign In to order!"); openAuth(); return; }
-            
-            const users = JSON.parse(localStorage.getItem('all_users') || '[]');
-            const user = users.find(u => u.email === userEmail) || { name: "Valued Customer", location: "Not set" };
+            const email = localStorage.getItem('currentUser');
+            if (!email) return openAuth();
 
-            // Update Stock
+            // Instant deduction (No Refresh)
             let products = JSON.parse(localStorage.getItem('dee_products') || '[]');
             products = products.map(p => p.id === id ? {...p, stock: p.stock - 1} : p);
             localStorage.setItem('dee_products', JSON.stringify(products));
-
+            
             // Log Sale
             const orders = JSON.parse(localStorage.getItem('allOrders') || '[]');
-            orders.unshift({ name: user.name, item: name, price: price, status: 'Pending', id: Date.now() });
+            orders.unshift({ email, item: name, price, status: 'Pending', id: Date.now() });
             localStorage.setItem('allOrders', JSON.stringify(orders));
 
-            const msg = `Hi DEE BOUTIQUE! I'm ${user.name}. I'd like to order the ${name} (Ksh ${price}). Deliver to: ${user.location}`;
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
-            setTimeout(() => location.reload(), 500);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Order:%20${name}`, '_blank');
+            loadProducts(); // Update UI immediately instead of reloading page
         }
 
-        // Admin Helpers
-        function openEdit(id) { editingId = id; document.getElementById('edit-modal').classList.add('active'); }
-        function closeEdit() { document.getElementById('edit-modal').classList.remove('active'); }
-        function saveEdit() {
-            let p = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            p = p.map(i => i.id === editingId ? {...i, price: parseInt(document.getElementById('edit-price').value), stock: parseInt(document.getElementById('edit-stock').value)} : i);
-            localStorage.setItem('dee_products', JSON.stringify(p));
-            location.reload();
-        }
-
-        function showAdminDashboard() {
-            document.getElementById('admin-panel').classList.remove('hidden');
+        function updateDashboard() {
             const orders = JSON.parse(localStorage.getItem('allOrders') || '[]');
-            const list = document.getElementById('sales-list');
-            let rev = 0;
-            list.innerHTML = orders.map(o => {
-                if(o.status !== 'Cancelled') rev += o.price;
-                return `<tr class="border-b"><td class="p-4"><b>${o.name}</b></td><td class="p-4">${o.item}</td><td class="p-4">Pending</td><td class="p-4 text-right">Ksh ${o.price}</td></tr>`;
-            }).join('');
+            const rev = orders.reduce((sum, o) => sum + o.price, 0);
             document.getElementById('total-sales').innerText = `Ksh ${rev.toLocaleString()}`;
         }
+
+        function openAuth() { document.getElementById('auth-modal').classList.add('active'); }
+        function closeAuth() { document.getElementById('auth-modal').classList.remove('active'); }
+        function logout() { localStorage.removeItem('currentUser'); location.reload(); }
+
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            localStorage.setItem('currentUser', document.getElementById('auth-email').value.toLowerCase());
+            location.reload();
+        });
 
         document.getElementById('upload-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const p = JSON.parse(localStorage.getItem('dee_products') || '[]');
             p.unshift({ id: Date.now(), name: document.getElementById('prod-name').value, price: parseInt(document.getElementById('prod-price').value), stock: parseInt(document.getElementById('prod-stock').value), image: document.getElementById('prod-image').value });
             localStorage.setItem('dee_products', JSON.stringify(p));
-            location.reload();
+            e.target.reset(); loadProducts();
         });
 
-        function deleteProduct(id) { if(confirm("Delete item?")) { let p = JSON.parse(localStorage.getItem('dee_products') || '[]'); localStorage.setItem('dee_products', JSON.stringify(p.filter(i => i.id !== id))); location.reload(); } }
+        function deleteProduct(id) {
+            let p = JSON.parse(localStorage.getItem('dee_products') || '[]');
+            localStorage.setItem('dee_products', JSON.stringify(p.filter(i => i.id !== id)));
+            loadProducts();
+        }
     </script>
 </body>
 </html>
