@@ -2,54 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DEE BOUTIQUE | Premium Fashion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .product-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        /* Mobile Smoothness & Animations */
+        body { -webkit-tap-highlight-color: transparent; }
+        .product-card { transition: all 0.3s ease; }
+        .modal { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.7); 
+            z-index: 100; 
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(5px);
+            padding: 20px;
+        }
         .modal.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .new-item { animation: fadeIn 0.5s ease-out; }
+        
+        /* Ensure tables don't break mobile layout */
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #db2777; border-radius: 10px; }
+
+        @media (max-width: 640px) {
+            .admin-controls { scale: 1.2; } /* Larger buttons for mobile thumbs */
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-gray-900">
 
     <nav class="bg-white shadow-sm p-4 sticky top-0 z-50 border-b border-pink-100">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-3xl font-black tracking-tighter text-pink-600">DEE BOUTIQUE</h1>
-            <div id="nav-links" class="flex gap-3 items-center font-bold text-gray-600">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-pink-600">DEE BOUTIQUE</h1>
+            <div id="nav-links" class="flex gap-2 md:gap-3 items-center font-bold text-gray-600">
                 </div>
         </div>
     </nav>
 
-    <div id="admin-panel" class="hidden container mx-auto p-6 bg-white border-2 border-pink-200 rounded-2xl my-6 shadow-xl">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div id="admin-panel" class="hidden container mx-auto p-4 md:p-6 bg-white border-2 border-pink-200 rounded-2xl my-4 md:my-6 shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h2 class="text-2xl font-black text-pink-600 uppercase">Owner Dashboard</h2>
-                <p class="text-xs text-gray-500 font-bold">Logged in as Daisy (Admin)</p>
+                <h2 class="text-xl md:text-2xl font-black text-pink-600 uppercase">Owner Dashboard</h2>
+                <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Admin Mode Active</p>
             </div>
-            <div class="bg-pink-600 text-white p-4 rounded-xl shadow-md text-center min-w-[150px]">
-                <p class="text-xs uppercase opacity-80 font-bold">Total Revenue</p>
+            <div class="bg-pink-600 text-white p-4 rounded-xl shadow-md text-center w-full md:w-auto min-w-[150px]">
+                <p class="text-[10px] uppercase opacity-80 font-bold">Total Revenue</p>
                 <p id="total-sales" class="text-xl font-bold">Ksh 0</p>
             </div>
         </div>
 
-        <section class="mb-10 bg-pink-50 p-6 rounded-xl border-2 border-dashed border-pink-300">
-            <h3 class="text-lg font-bold mb-4 text-pink-700"><i class="fas fa-plus-circle"></i> New Arrival</h3>
-            <form id="upload-form" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <input type="text" id="prod-name" placeholder="Item Name" class="p-3 border rounded-lg outline-none" required>
-                <input type="number" id="prod-price" placeholder="Price (Ksh)" class="p-3 border rounded-lg outline-none" required>
-                <input type="number" id="prod-stock" placeholder="Stock" class="p-3 border rounded-lg outline-none" required>
-                <input type="text" id="prod-image" placeholder="Image URL" class="p-3 border rounded-lg outline-none" required>
-                <button type="submit" class="bg-pink-600 text-white font-bold py-3 rounded-lg hover:bg-pink-700">Post Stock</button>
+        <section class="mb-8 bg-pink-50 p-4 md:p-6 rounded-xl border-2 border-dashed border-pink-300">
+            <h3 class="text-lg font-bold mb-4 text-pink-700"><i class="fas fa-plus-circle mr-2"></i>Post New Stock</h3>
+            <form id="upload-form" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <input type="text" id="prod-name" placeholder="Item Name" class="p-3 border rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-sm" required>
+                <input type="number" id="prod-price" placeholder="Price (Ksh)" class="p-3 border rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-sm" required>
+                <input type="number" id="prod-stock" placeholder="Qty" class="p-3 border rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-sm" required>
+                <input type="text" id="prod-image" placeholder="Image Link" class="p-3 border rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-sm" required>
+                <button type="submit" class="bg-pink-600 text-white font-black py-3 rounded-xl hover:bg-pink-700 shadow-lg transition active:scale-95">UPLOAD</button>
             </form>
         </section>
 
-        <h3 class="text-lg font-bold mb-3">Orders & Sales</h3>
-        <div class="overflow-x-auto bg-white rounded-lg border">
-            <table class="w-full text-sm text-left">
+        <h3 class="text-lg font-bold mb-3">WhatsApp Sales Log</h3>
+        <div class="overflow-x-auto bg-white rounded-xl border custom-scrollbar">
+            <table class="w-full text-sm text-left min-w-[500px]">
                 <thead class="bg-gray-100 text-gray-700">
                     <tr><th class="p-4">Customer</th><th class="p-4">Item</th><th class="p-4">Status</th><th class="p-4 text-right">Price</th></tr>
                 </thead>
@@ -58,51 +76,59 @@
         </div>
     </div>
 
-    <main class="container mx-auto p-6">
-        <h2 class="text-4xl font-black text-gray-900 italic mb-8">NEW ARRIVALS</h2>
-        <div id="product-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+    <main class="container mx-auto p-4 md:p-6">
+        <div class="mb-8">
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 italic">NEW ARRIVALS</h2>
+            <div class="h-1.5 w-16 bg-pink-600 mt-2"></div>
+        </div>
+        <div id="product-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            </div>
     </main>
 
-    <div id="auth-modal" class="modal p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <h3 id="auth-title" class="text-2xl font-black mb-4 text-pink-600">Create Account</h3>
+    <div id="auth-modal" class="modal">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl">
+            <h3 id="auth-title" class="text-2xl font-black mb-4 text-pink-600">Account</h3>
             <form id="auth-form" class="space-y-4">
                 <div id="signup-only">
-                    <input type="text" id="auth-name" placeholder="Full Name" class="w-full p-3 border rounded-xl mb-4">
-                    <input type="tel" id="auth-phone" placeholder="Phone Number" class="w-full p-3 border rounded-xl mb-4">
-                    <input type="text" id="auth-loc" placeholder="Delivery Area" class="w-full p-3 border rounded-xl">
+                    <input type="text" id="auth-name" placeholder="Full Name" class="w-full p-4 border rounded-2xl mb-3">
+                    <input type="tel" id="auth-phone" placeholder="Phone Number" class="w-full p-4 border rounded-2xl mb-3">
+                    <input type="text" id="auth-loc" placeholder="Delivery Area (e.g. Kilimani)" class="w-full p-4 border rounded-2xl">
                 </div>
-                <input type="email" id="auth-email" placeholder="Email Address" class="w-full p-3 border rounded-xl" required>
-                <button type="submit" class="w-full bg-pink-600 text-white py-4 rounded-xl font-black shadow-lg">CONTINUE</button>
-                <button type="button" onclick="closeAuth()" class="w-full text-gray-400 font-bold py-2">Cancel</button>
+                <input type="email" id="auth-email" placeholder="Email Address" class="w-full p-4 border rounded-2xl" required>
+                <button type="submit" class="w-full bg-pink-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">CONTINUE</button>
+                <button type="button" onclick="closeAuth()" class="w-full text-gray-400 font-bold py-2">Close</button>
             </form>
         </div>
     </div>
 
-    <div id="edit-modal" class="modal p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-            <h3 class="text-xl font-black mb-4">Update Stock</h3>
+    <div id="edit-modal" class="modal">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl">
+            <h3 class="text-xl font-black mb-4">Update Item</h3>
             <div class="space-y-4">
-                <label class="block text-xs font-bold text-gray-400 uppercase">Price (Ksh)</label>
-                <input type="number" id="edit-price" class="w-full p-3 border rounded-xl">
-                <label class="block text-xs font-bold text-gray-400 uppercase">Quantity in Stock</label>
-                <input type="number" id="edit-stock" class="w-full p-3 border rounded-xl">
-                <div class="flex gap-2">
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Price (Ksh)</label>
+                    <input type="number" id="edit-price" class="w-full p-4 border rounded-2xl focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Current Stock</label>
+                    <input type="number" id="edit-stock" class="w-full p-4 border rounded-2xl focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div class="flex gap-3 pt-2">
                     <button onclick="closeEdit()" class="flex-1 py-3 font-bold text-gray-400">Cancel</button>
-                    <button onclick="saveEdit()" class="flex-1 bg-black text-white py-3 rounded-xl font-bold">Save Changes</button>
+                    <button onclick="saveEdit()" class="flex-1 bg-black text-white py-3 rounded-2xl font-bold active:scale-95 transition">SAVE</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="order-modal" class="modal p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full">
+    <div id="order-modal" class="modal">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl">
             <h3 class="text-2xl font-black mb-4 text-pink-600">Checkout</h3>
-            <div id="order-summary" class="bg-slate-50 p-4 rounded-xl mb-6 font-bold"></div>
-            <button onclick="confirmOrder()" class="w-full bg-green-500 text-white py-4 rounded-xl font-black shadow-lg flex items-center justify-center gap-2">
-                <i class="fab fa-whatsapp"></i> SEND VIA WHATSAPP
+            <div id="order-summary" class="bg-slate-50 p-5 rounded-2xl mb-6 font-bold text-gray-700 border border-slate-100"></div>
+            <button onclick="confirmOrder()" class="w-full bg-green-500 text-white py-5 rounded-2xl font-black shadow-lg flex items-center justify-center gap-3 active:scale-95 transition">
+                <i class="fab fa-whatsapp text-xl"></i> ORDER ON WHATSAPP
             </button>
-            <button onclick="closeOrder()" class="w-full py-3 text-gray-400 font-bold">Go Back</button>
+            <button onclick="closeOrder()" class="w-full py-4 text-gray-400 font-bold">Back to Shop</button>
         </div>
     </div>
 
@@ -119,41 +145,22 @@
             if(localStorage.getItem('currentUser') === ADMIN_EMAIL) showAdminDashboard();
         };
 
-        // --- AUTH LOGIC ---
-        function openSignUp() {
-            isLoginMode = false;
-            document.getElementById('auth-title').innerText = "Sign Up";
-            document.getElementById('signup-only').style.display = 'block';
-            document.getElementById('auth-modal').classList.add('active');
-        }
-
-        function openSignIn() {
-            isLoginMode = true;
-            document.getElementById('auth-title').innerText = "Sign In";
-            document.getElementById('signup-only').style.display = 'none';
-            document.getElementById('auth-modal').classList.add('active');
-        }
-
+        // --- AUTH ---
+        function openSignUp() { isLoginMode = false; document.getElementById('auth-title').innerText = "Create Account"; document.getElementById('signup-only').style.display = 'block'; document.getElementById('auth-modal').classList.add('active'); }
+        function openSignIn() { isLoginMode = true; document.getElementById('auth-title').innerText = "Sign In"; document.getElementById('signup-only').style.display = 'none'; document.getElementById('auth-modal').classList.add('active'); }
         function closeAuth() { document.getElementById('auth-modal').classList.remove('active'); }
 
         document.getElementById('auth-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value.toLowerCase();
-            
             if (isLoginMode) {
                 const users = JSON.parse(localStorage.getItem('all_users') || '[]');
-                const found = users.find(u => u.email === email);
-                if (found || email === ADMIN_EMAIL) {
+                if (users.find(u => u.email === email) || email === ADMIN_EMAIL) {
                     localStorage.setItem('currentUser', email);
                     location.reload();
-                } else { alert("User not found. Please Sign Up."); }
+                } else { alert("Account not found. Please Sign Up!"); }
             } else {
-                const newUser = {
-                    name: document.getElementById('auth-name').value,
-                    email: email,
-                    phone: document.getElementById('auth-phone').value,
-                    location: document.getElementById('auth-loc').value
-                };
+                const newUser = { name: document.getElementById('auth-name').value, email: email, phone: document.getElementById('auth-phone').value, location: document.getElementById('auth-loc').value };
                 let users = JSON.parse(localStorage.getItem('all_users') || '[]');
                 users.push(newUser);
                 localStorage.setItem('all_users', JSON.stringify(users));
@@ -166,114 +173,102 @@
             const nav = document.getElementById('nav-links');
             const currentUser = localStorage.getItem('currentUser');
             if (currentUser) {
-                nav.innerHTML = `<span class="text-xs text-pink-600 font-black">${currentUser}</span>
-                <button onclick="localStorage.removeItem('currentUser'); location.reload();" class="text-xs text-red-500 underline">Logout</button>`;
+                nav.innerHTML = `<span class="hidden md:inline text-[10px] bg-pink-100 text-pink-600 px-2 py-1 rounded font-black">${currentUser}</span>
+                <button onclick="localStorage.removeItem('currentUser'); location.reload();" class="text-xs bg-slate-100 px-3 py-2 rounded-lg text-red-500 font-bold">Logout</button>`;
             } else {
-                nav.innerHTML = `
-                    <button onclick="openSignIn()" class="text-sm px-4 py-2">Sign In</button>
-                    <button onclick="openSignUp()" class="bg-pink-600 text-white px-5 py-2 rounded-full text-sm shadow-lg shadow-pink-100">Sign Up</button>`;
+                nav.innerHTML = `<button onclick="openSignIn()" class="text-sm font-bold mr-2">Login</button>
+                <button onclick="openSignUp()" class="bg-pink-600 text-white px-4 py-2 rounded-full text-sm shadow-md">Join</button>`;
             }
         }
 
-        // --- PRODUCT LOGIC ---
+        // --- PRODUCTS ---
         function loadProducts() {
             const grid = document.getElementById('product-display-grid');
             const products = JSON.parse(localStorage.getItem('dee_products') || '[]');
             const isAdmin = localStorage.getItem('currentUser') === ADMIN_EMAIL;
 
             grid.innerHTML = products.map(p => {
-                const isOutOfStock = p.stock <= 0;
+                const out = p.stock <= 0;
                 return `
-                <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 relative product-card">
+                <div class="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100 relative product-card">
                     ${isAdmin ? `
-                        <div class="absolute top-4 right-4 flex gap-2 z-10">
-                            <button onclick="openEdit(${p.id})" class="bg-black text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center"><i class="fas fa-pencil-alt text-xs"></i></button>
-                            <button onclick="deleteProduct(${p.id})" class="bg-red-500 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center"><i class="fas fa-trash text-xs"></i></button>
+                        <div class="absolute top-4 right-4 flex gap-2 z-10 admin-controls">
+                            <button onclick="openEdit(${p.id})" class="bg-black/80 backdrop-blur text-white w-10 h-10 rounded-full flex items-center justify-center shadow-xl"><i class="fas fa-pencil-alt text-sm"></i></button>
+                            <button onclick="deleteProduct(${p.id})" class="bg-red-500/80 backdrop-blur text-white w-10 h-10 rounded-full flex items-center justify-center shadow-xl"><i class="fas fa-trash text-sm"></i></button>
                         </div>
                     ` : ''}
-                    <img src="${p.image}" class="h-80 w-full object-cover ${isOutOfStock ? 'grayscale opacity-50' : ''}">
-                    <div class="p-6">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-gray-900">${p.name}</h3>
-                            <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-black">${p.stock} LEFT</span>
+                    <div class="relative">
+                        <img src="${p.image}" class="h-72 md:h-80 w-full object-cover ${out ? 'grayscale opacity-40' : ''}">
+                        <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter ${p.stock < 3 ? 'text-red-600' : 'text-gray-600'} shadow-sm">
+                            ${out ? 'SOLD OUT' : p.stock + ' Pieces Available'}
                         </div>
-                        <p class="text-2xl font-black text-pink-600 mt-1">Ksh ${p.price.toLocaleString()}</p>
-                        <button onclick="${isOutOfStock ? '' : `handleOrder(${p.id}, '${p.name}', ${p.price})`}" 
-                            class="w-full mt-4 py-3 rounded-xl font-bold transition ${isOutOfStock ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-pink-600'}">
-                            ${isOutOfStock ? 'SOLD OUT' : 'BUY NOW'}
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-gray-800 text-lg">${p.name}</h3>
+                        <p class="text-2xl font-black text-pink-600">Ksh ${p.price.toLocaleString()}</p>
+                        <button onclick="${out ? '' : `handleOrder(${p.id}, '${p.name}', ${p.price})`}" 
+                            class="w-full mt-4 py-4 rounded-2xl font-black transition-all ${out ? 'bg-gray-100 text-gray-400' : 'bg-black text-white active:bg-pink-600 shadow-lg shadow-gray-200'}">
+                            ${out ? 'UNAVAILABLE' : 'ORDER NOW'}
                         </button>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        // --- STOCK EDIT LOGIC ---
+        // --- EDITING ---
         function openEdit(id) {
             const products = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            const p = products.find(item => item.id === id);
+            const p = products.find(i => i.id === id);
             editingId = id;
             document.getElementById('edit-price').value = p.price;
             document.getElementById('edit-stock').value = p.stock;
             document.getElementById('edit-modal').classList.add('active');
         }
-
         function closeEdit() { document.getElementById('edit-modal').classList.remove('active'); }
-
         function saveEdit() {
             let products = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            products = products.map(p => {
-                if(p.id === editingId) {
-                    return { ...p, price: parseInt(document.getElementById('edit-price').value), stock: parseInt(document.getElementById('edit-stock').value) };
-                }
-                return p;
-            });
+            products = products.map(p => p.id === editingId ? { ...p, price: parseInt(document.getElementById('edit-price').value), stock: parseInt(document.getElementById('edit-stock').value) } : p);
             localStorage.setItem('dee_products', JSON.stringify(products));
-            closeEdit();
-            loadProducts();
-            if(localStorage.getItem('currentUser') === ADMIN_EMAIL) showAdminDashboard();
+            closeEdit(); loadProducts(); if(localStorage.getItem('currentUser') === ADMIN_EMAIL) showAdminDashboard();
         }
 
-        // --- SHOPPING LOGIC ---
+        // --- ORDERING ---
         function handleOrder(id, name, price) {
-            const user = localStorage.getItem('currentUser');
-            if (!user) { alert("Please Sign In or Sign Up to place an order."); openSignIn(); return; }
+            if (!localStorage.getItem('currentUser')) { alert("Please login to order!"); openSignIn(); return; }
             pendingItem = { id, name, price };
-            document.getElementById('order-summary').innerText = `Item: ${name} (Ksh ${price.toLocaleString()})`;
+            document.getElementById('order-summary').innerHTML = `<p class="text-pink-600 mb-1">Item Selected:</p><p class="text-xl font-black">${name}</p><p class="mt-2 text-gray-400">Total: Ksh ${price.toLocaleString()}</p>`;
             document.getElementById('order-modal').classList.add('active');
         }
+        function closeOrder() { document.getElementById('order-modal').classList.remove('active'); }
 
         function confirmOrder() {
             const email = localStorage.getItem('currentUser');
-            const users = JSON.parse(localStorage.getItem('all_users') || '[]');
-            const userData = users.find(u => u.email === email) || { name: "Valued Customer" };
-
-            // Deduct Stock
+            const user = JSON.parse(localStorage.getItem('all_users') || '[]').find(u => u.email === email) || { name: "Customer", location: "Not specified" };
+            
+            // Deduct & Log
             let products = JSON.parse(localStorage.getItem('dee_products') || '[]');
             products = products.map(p => p.id === pendingItem.id ? { ...p, stock: p.stock - 1 } : p);
             localStorage.setItem('dee_products', JSON.stringify(products));
 
-            // Log Sale
             const orders = JSON.parse(localStorage.getItem('allOrders') || '[]');
-            orders.unshift({ name: userData.name, email: email, item: pendingItem.name, price: pendingItem.price, status: 'Pending', id: Date.now() });
+            orders.unshift({ name: user.name, email: email, item: pendingItem.name, price: pendingItem.price, status: 'Pending', id: Date.now() });
             localStorage.setItem('allOrders', JSON.stringify(orders));
 
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Hi%20Dee!%20I'm%20${userData.name}.%20Order:%20${pendingItem.name}`, '_blank');
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=New%20Order%20from%20DeeBoutique!%0A%0AName:%20${user.name}%0AItem:%20${pendingItem.name}%0ALocation:%20${user.location}`, '_blank');
             location.reload();
         }
 
-        function closeOrder() { document.getElementById('order-modal').classList.remove('active'); }
-
-        // --- DASHBOARD ---
+        // --- ADMIN HELPERS ---
         function showAdminDashboard() {
             document.getElementById('admin-panel').classList.remove('hidden');
             const orders = JSON.parse(localStorage.getItem('allOrders') || '[]');
             const list = document.getElementById('sales-list');
-            let revenue = 0;
+            let rev = 0;
             list.innerHTML = orders.map(o => {
-                if(o.status !== 'Cancelled') revenue += o.price;
-                return `<tr class="border-b text-xs"><td class="p-4"><b>${o.name}</b></td><td class="p-4">${o.item}</td><td class="p-4"><select onchange="updateStatus(${o.id}, this.value)" class="border rounded"><option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option><option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option><option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option></select></td><td class="p-4 text-right">Ksh ${o.price}</td></tr>`;
+                if(o.status !== 'Cancelled') rev += o.price;
+                return `<tr class="border-b text-xs"><td class="p-4"><b>${o.name}</b></td><td class="p-4">${o.item}</td><td class="p-4"><select onchange="updateStatus(${o.id}, this.value)" class="p-1 border rounded"><option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option><option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option><option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option></select></td><td class="p-4 text-right">Ksh ${o.price}</td></tr>`;
             }).join('');
-            document.getElementById('total-sales').innerText = `Ksh ${revenue.toLocaleString()}`;
+            document.getElementById('total-sales').innerText = `Ksh ${rev.toLocaleString()}`;
         }
 
         function updateStatus(id, stat) {
@@ -288,17 +283,10 @@
             const products = JSON.parse(localStorage.getItem('dee_products') || '[]');
             products.unshift({ id: Date.now(), name: document.getElementById('prod-name').value, price: parseInt(document.getElementById('prod-price').value), stock: parseInt(document.getElementById('prod-stock').value), image: document.getElementById('prod-image').value });
             localStorage.setItem('dee_products', JSON.stringify(products));
-            e.target.reset();
-            loadProducts();
+            e.target.reset(); loadProducts();
         });
 
-        function deleteProduct(id) {
-            let prods = JSON.parse(localStorage.getItem('dee_products') || '[]');
-            localStorage.setItem('dee_products', JSON.stringify(prods.filter(p => p.id !== id)));
-            loadProducts();
-        }
-
-        function closeOrder() { document.getElementById('order-modal').classList.remove('active'); }
+        function deleteProduct(id) { if(confirm("Delete this item?")) { let p = JSON.parse(localStorage.getItem('dee_products') || '[]'); localStorage.setItem('dee_products', JSON.stringify(p.filter(i => i.id !== id))); loadProducts(); } }
     </script>
 </body>
 </html>
